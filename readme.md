@@ -6,3 +6,8 @@ My ideal Ubuntu development setup.
 ```bash
 wget -qO- https://raw.githubusercontent.com/csokun/ubuntu-dev-station/master/setup.sh | bash
 ```
+
+or
+```bash
+wget -qO- https://bit.ly/2YCOQYd | bash
+```
