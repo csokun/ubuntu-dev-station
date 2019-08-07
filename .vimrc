@@ -119,6 +119,7 @@ let g:buffergator_suppress_keymaps = 1
 
 " airline
 let g:airline_powerline_fonts = 1
+let g:airline_theme='jellybeans'
 hi NonText ctermbg=none 
 hi Normal guibg=NONE ctermbg=NONE
 
