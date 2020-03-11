@@ -5,8 +5,8 @@
 set -e
 
 # prefer package version
-export NODE_VERSION=10.16.0
-export TOR_BROWSER_VERSION=8.5.3
+export NODE_VERSION=12.16.1
+export TOR_BROWSER_VERSION=9.0.5
 
 # change priviledge
 sudo su -
@@ -27,21 +27,23 @@ git clone https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim
 wget https://raw.githubusercontent.com/csokun/ubuntu-dev-station/master/.vimrc
 
 # install nvm - Node Version Manager
-NODE_NVM_VERSION=$(curl -s "https://api.github.com/repos/creationix/nvm/tags" | jq ".[0].name" | sed 's/\"//g')
+NODE_NVM_VERSION=$(curl -sL "https://api.github.com/repos/creationix/nvm/tags" | jq ".[0].name" | sed 's/\"//g')
 wget -qO- https://raw.githubusercontent.com/creationix/nvm/${NODE_NVM_VERSION}/install.sh | bash
 source ~/.bashrc
 sleep 2s && nvm install $NODE_VERSION && nvm alias default $NODE_VERSION
 
 # docker
 sudo su -
-DOCKER_PACKAGE_URL=https://download.docker.com/linux/ubuntu/dists/$(lsb_release -c | cut -f2)/pool/nightly/amd64/
-DOCKER_PACKAGE=$(wget -q $DOCKER_PACKAGE_URL -O - | tr '\n' ' ' | grep -Po '(?<=href=")[^"]*' | tail -1)
-wget ${DOCKER_PACKAGE_URL}${DOCKER_PACKAGE}
-dpkg -i $DOCKER_PACKAGE
-usermod -aG docker $USER		# run docker without sudo
-systemctl enable docker			# start docker on boot
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+apt update  && apt install docker-ce docker-ce-cli containerd.io
+# run docker without sudo
+chown $USER:docker /var/run/docker.sock
+usermod -aG docker $USER
+# start docker on boot
+systemctl enable docker
 
-DOCKER_COMPOSE_VERSION=$(curl -s "https://api.github.com/repos/docker/compose/releases" | jq ".[0].name" | sed 's/\"//g')
+DOCKER_COMPOSE_VERSION=$(curl -sL "https://api.github.com/repos/docker/compose/releases" | jq ".[0].name" | sed 's/\"//g')
 curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
 chmod +x /usr/local/bin/docker-compose
 exit
@@ -82,11 +84,6 @@ alias elc='echo "removing .mix and .hex directories" && rm -rf .mix && rm -rf .h
 EOL
 
 source ~/.bashrc
-
-# install snap packages
-sudo snap install postman vlc htop ffmpeg audacity
-sudo snap install code --classic
-sudo snap install kubectl --classic
 
 # terminal theme
 read -p "Create a dummy profile for gnome terminal and Press enter to continue"
