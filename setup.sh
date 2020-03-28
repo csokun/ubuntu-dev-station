@@ -10,7 +10,35 @@ export TOR_BROWSER_VERSION=9.0.5
 
 # change priviledge
 sudo su -
-apt update && apt install -y curl jq xsel bash-completion git tmux vim calibre meld gitk
+# snap! cool, but I'm not a fan.
+apt-get remove --purge gnome-software-plugin-snap
+apt update && apt install -y curl \
+  jq \
+  ffmpeg \
+  xsel \
+  bash-completion \
+  git \
+  tmux \
+  calibre \
+  meld \
+  gitk \
+  apt-transport-https \
+  gnupg-agent \
+  ca-certificates \
+  gnome-tweak-tool \
+  software-properties-common
+
+# youtube-dl
+curl -sL https://yt-dl.org/downloads/latest/youtube-dl -o /usr/local/bin/youtube-dl
+chmod a+rx /usr/local/bin/youtube-dl
+
+# neovim
+curl -sL https://github.com/neovim/neovim/releases/download/stable/nvim-linux64.tar.gz -o nvim-linux64.tar.gz 
+tar -xf nvim-linux64.tar.gz
+cp -a nvim-linux64/* /usr/local/
+ln -s /usr/local/bin/nvim /usr/local/bin/vim
+rm -rf nvim-linux64
+rm nvim-linux64.tar.gz
 exit
 
 # install powerline fonts
@@ -46,6 +74,11 @@ systemctl enable docker
 DOCKER_COMPOSE_VERSION=$(curl -sL "https://api.github.com/repos/docker/compose/releases" | jq ".[0].name" | sed 's/\"//g')
 curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
 chmod +x /usr/local/bin/docker-compose
+
+# kubectl
+curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl
+chmod +x ./kubectl
+mv ./kubectl /usr/local/bin/kubectl
 exit
 
 # git credential - remember for 24hr
@@ -69,18 +102,28 @@ EOL
 
 # setup prompt
 wget https://raw.githubusercontent.com/git/git/master/contrib/completion/git-prompt.sh -qO ~/.git-prompt.sh
+
 cat >> ~/.bashrc <<EOL
 # git-prompt
 source ~/.git-prompt.sh
 PS1='\[\e[32m\]\u\[\e[m\]\[\e[35m\]@\h\[\e[m\]:\w\$(__git_ps1 " (%s)")\n \$ '
-EOL
 
-cat >> ~/.bashrc <<EOL
 # setup Elixir aliases
-alias iex='docker run -it -v ${PWD}/.mix:/.mix -v ${PWD}/.hex:/.hex -v ${PWD}/src:/src --workdir /src --rm --network=host -u $(id -u ${USER}):$(id -g ${USER}) elixir'
-alias elixir='docker run -it -v ${PWD}/.mix:/.mix -v ${PWD}/.hex:/.hex -v ${PWD}/src:/src --workdir /src --rm --network=host -u $(id -u ${USER}):$(id -g ${USER}) elixir elixir'
-alias mix='docker run -it -v ${PWD}/.mix:/.mix -v ${PWD}/.hex:/.hex -v ${PWD}/src:/src --workdir /src --rm --network=host -u $(id -u ${USER}):$(id -g ${USER}) elixir mix'
-alias elc='echo "removing .mix and .hex directories" && rm -rf .mix && rm -rf .hex'
+export ELIXIR_IMAGE="csokun/elixir-studio:latest"
+export ELIXIR_HOST_ROOT="$HOME/elixir"
+if [ ! -d "$ELIXIR_HOST_ROOT" ]; then
+    mkdir -p $ELIXIR_HOST_ROOT/.mix $ELIXIR_HOST_ROOT/.hex
+fi
+export ELIXIR_CONTAINER_ROOT="/home/elixir"
+export ELIXIR_VOLUMES="-v ${ELIXIR_HOST_ROOT}/.mix:${ELIXIR_CONTAINER_ROOT}/.mix -v ${ELIXIR_HOST_ROOT}/.hex:${ELIXIR_CONTAINER_ROOT}/.hex --mount type=bind,source=${HOME}/.gitconfig,target=${ELIXIR_CONTAINER_ROOT}/.gitconfig,readonly --workdir /src"
+
+alias iex='docker run -it ${ELIXIR_VOLUMES} -e DISPLAY=$DISPLAY -v ${PWD}:/src --rm --network=host ${ELIXIR_IMAGE}'
+alias iexm='docker run -it ${ELIXIR_VOLUMES} -v ${PWD}:/src --rm --network=host ${ELIXIR_IMAGE} iex -S mix'
+alias elixir='docker run -it ${ELIXIR_VOLUMES} -v ${PWD}:/src --rm --network=host ${ELIXIR_IMAGE} elixir'
+alias elixirc='docker run -it ${ELIXIR_VOLUMES} -v ${PWD}:/src --rm --network=host ${ELIXIR_IMAGE} elixirc'
+alias mix='docker run -it ${ELIXIR_VOLUMES} -v ${PWD}:/src --rm --network=host ${ELIXIR_IMAGE} mix'
+alias iexstudio='docker run -it ${ELIXIR_VOLUMES} -e DISPLAY=$DISPLAY -v ${PWD}:/src --rm --network=host ${ELIXIR_IMAGE} studio'
+alias elc='echo "removing .mix and .hex directories" && rm -rf ${ELIXIRROOT}/.mix && rm -rf ${ELIXIRROOT}/.hex'
 EOL
 
 source ~/.bashrc
