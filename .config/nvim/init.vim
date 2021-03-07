@@ -1,0 +1,13 @@
+source $HOME/.config/nvim/config/general.vim
+source $HOME/.config/nvim/config/mappings.vim
+" Plugins
+source $HOME/.config/nvim/plugins.vim
+source $HOME/.config/nvim/plug-config/nerdtree.vim
+source $HOME/.config/nvim/plug-config/easymotion.vim
+source $HOME/.config/nvim/plug-config/coc.vim
+source $HOME/.config/nvim/plug-config/fzf.vim
+source $HOME/.config/nvim/plug-config/floaterm.vim
+source $HOME/.config/nvim/plug-config/vim-go.vim
+" Themes
+source $HOME/.config/nvim/themes/onedark.vim
+source $HOME/.config/nvim/themes/airline.vim
