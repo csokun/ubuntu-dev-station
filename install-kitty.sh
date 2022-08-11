@@ -6,3 +6,5 @@ exit
 mkdir -p ~/.config/kitty
 git clone --depth 1 git@github.com:dexpota/kitty-themes.git ~/.config/kitty/kitty-themes
 rsync -r .config/kitty ~/.config/kitty
+
+echo "alias ssh=\"kitty +kitten ssh\"" >> ~/.bashrc
